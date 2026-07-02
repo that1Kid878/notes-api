@@ -1,3 +1,4 @@
+mod dto;
 mod models;
 mod repo;
 
