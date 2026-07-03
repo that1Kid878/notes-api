@@ -1,10 +1,10 @@
-use sqlx::{SqliteConnection, query};
+use sqlx::{SqliteConnection, query, query_as};
 
 use crate::{dto::CreateNoteDto, models::Note};
 
 // Get notes by username
 async fn get_notes(username: &str, pool: &mut SqliteConnection) -> Result<Vec<Note>, sqlx::Error> {
-    let notes: Vec<Note> = sqlx::query_as(
+    let notes: Vec<Note> = query_as(
         "SELECT id, username, title, body, last_edited, created_at FROM notes WHERE username = ?",
     )
     .bind(username)
@@ -15,7 +15,7 @@ async fn get_notes(username: &str, pool: &mut SqliteConnection) -> Result<Vec<No
 }
 // Get note by id
 async fn get_note(id: i32, pool: &mut SqliteConnection) -> Result<Note, sqlx::Error> {
-    let notes: Note = sqlx::query_as(
+    let notes: Note = query_as(
         "SELECT id, username, title, body, last_edited, created_at FROM notes WHERE id = ?",
     )
     .bind(id)
@@ -29,7 +29,7 @@ async fn create_note(
     input: &CreateNoteDto,
     pool: &mut SqliteConnection,
 ) -> Result<(), sqlx::Error> {
-    sqlx::query("INSERT INTO notes (username, title, body, last_edited) VALUES (?, ?, ?, ?,)")
+    query("INSERT INTO notes (username, title, body, last_edited) VALUES (?, ?, ?, ?,)")
         .bind(&input.username)
         .bind(&input.title)
         .bind(&input.body)
@@ -45,7 +45,7 @@ async fn edit_note(
     body: &str,
     pool: &mut SqliteConnection,
 ) -> Result<(), sqlx::Error> {
-    sqlx::query(
+    query(
         "UPDATE notes
         SET body = COALESCE(?, body),
             title = COALESCE(?, title)
@@ -62,7 +62,7 @@ async fn edit_note(
 }
 // Delete note
 async fn delete_note(id: i32, pool: &mut SqliteConnection) -> Result<(), sqlx::Error> {
-    sqlx::query("DELETE FROM notes WHERE id = ?")
+    query("DELETE FROM notes WHERE id = ?")
         .bind(id)
         .execute(pool)
         .await?;
