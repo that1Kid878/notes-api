@@ -1,71 +1,74 @@
-use sqlx::{SqliteConnection, query, query_as};
+use sqlx::{SqlitePool, query, query_as};
 
 use crate::{dto::CreateNoteDto, models::Note};
 
-// Get notes by username
-async fn get_notes(username: &str, pool: &mut SqliteConnection) -> Result<Vec<Note>, sqlx::Error> {
-    let notes: Vec<Note> = query_as(
-        "SELECT id, username, title, body, last_edited, created_at FROM notes WHERE username = ?",
-    )
-    .bind(username)
-    .fetch_all(pool)
-    .await?;
-
-    Ok(notes)
+#[derive(Clone)]
+pub struct NoteRepo {
+    pool: SqlitePool,
 }
-// Get note by id
-async fn get_note(id: i32, pool: &mut SqliteConnection) -> Result<Note, sqlx::Error> {
-    let notes: Note = query_as(
-        "SELECT id, username, title, body, last_edited, created_at FROM notes WHERE id = ?",
-    )
-    .bind(id)
-    .fetch_one(pool)
-    .await?;
 
-    Ok(notes)
-}
-// Create note
-async fn create_note(
-    input: &CreateNoteDto,
-    pool: &mut SqliteConnection,
-) -> Result<(), sqlx::Error> {
-    query("INSERT INTO notes (username, title, body, last_edited) VALUES (?, ?, ?, ?,)")
-        .bind(&input.username)
-        .bind(&input.title)
-        .bind(&input.body)
-        .execute(pool)
+impl NoteRepo {
+    pub fn new(pool: SqlitePool) -> Self {
+        Self { pool }
+    }
+
+    // Get notes by username
+    pub async fn get_notes(&self, username: &str) -> Result<Vec<Note>, sqlx::Error> {
+        let notes: Vec<Note> = query_as(
+            "SELECT id, username, title, body, last_edited, created_at FROM notes WHERE username = ?",
+        )
+        .bind(username)
+        .fetch_all(&self.pool)
         .await?;
 
-    Ok(())
-}
-// Edit note
-async fn edit_note(
-    id: i32,
-    title: &str,
-    body: &str,
-    pool: &mut SqliteConnection,
-) -> Result<(), sqlx::Error> {
-    query(
-        "UPDATE notes
-        SET body = COALESCE(?, body),
-            title = COALESCE(?, title)
-            last_edited = CURRENT_TIMESTAMP
-        WHERE id = ?",
-    )
-    .bind(body)
-    .bind(title)
-    .bind(id)
-    .execute(pool)
-    .await?;
-
-    Ok(())
-}
-// Delete note
-async fn delete_note(id: i32, pool: &mut SqliteConnection) -> Result<(), sqlx::Error> {
-    query("DELETE FROM notes WHERE id = ?")
+        Ok(notes)
+    }
+    // Get note by id
+    pub async fn get_note(&self, id: i32) -> Result<Note, sqlx::Error> {
+        let notes: Note = query_as(
+            "SELECT id, username, title, body, last_edited, created_at FROM notes WHERE id = ?",
+        )
         .bind(id)
-        .execute(pool)
+        .fetch_one(&self.pool)
         .await?;
 
-    Ok(())
+        Ok(notes)
+    }
+    // Create note
+    pub async fn create_note(&self, input: &CreateNoteDto) -> Result<(), sqlx::Error> {
+        query("INSERT INTO notes (username, title, body, last_edited) VALUES (?, ?, ?)")
+            .bind(&input.username)
+            .bind(&input.title)
+            .bind(&input.body)
+            .execute(&self.pool)
+            .await?;
+
+        Ok(())
+    }
+    // Edit note
+    pub async fn edit_note(&self, id: i32, title: &str, body: &str) -> Result<(), sqlx::Error> {
+        query(
+            "UPDATE notes
+            SET body = COALESCE(?, body),
+                title = COALESCE(?, title)
+                last_edited = CURRENT_TIMESTAMP
+            WHERE id = ?",
+        )
+        .bind(body)
+        .bind(title)
+        .bind(id)
+        .execute(&self.pool)
+        .await?;
+
+        Ok(())
+    }
+    // Delete note
+    pub async fn delete_note(&self, id: i32) -> Result<(), sqlx::Error> {
+        query("DELETE FROM notes WHERE id = ?")
+            .bind(id)
+            .execute(&self.pool)
+            .await?;
+
+        Ok(())
+    }
 }
