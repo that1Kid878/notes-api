@@ -1,6 +1,9 @@
 use sqlx::{SqlitePool, query, query_as};
 
-use crate::{dto::CreateNoteDto, models::Note};
+use crate::{
+    dto::{CreateNoteDto, EditNoteDto},
+    models::Note,
+};
 
 #[derive(Clone)]
 pub struct NoteRepo {
@@ -46,7 +49,7 @@ impl NoteRepo {
         Ok(())
     }
     // Edit note
-    pub async fn edit_note(&self, id: i32, title: &str, body: &str) -> Result<(), sqlx::Error> {
+    pub async fn edit_note(&self, input: &EditNoteDto) -> Result<(), sqlx::Error> {
         query(
             "UPDATE notes
             SET body = COALESCE(?, body),
@@ -54,9 +57,9 @@ impl NoteRepo {
                 last_edited = CURRENT_TIMESTAMP
             WHERE id = ?",
         )
-        .bind(body)
-        .bind(title)
-        .bind(id)
+        .bind(&input.body)
+        .bind(&input.title)
+        .bind(&input.id)
         .execute(&self.pool)
         .await?;
 
