@@ -37,8 +37,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         handler: handler.clone(),
     };
     let app = Router::new()
-        .route("/notes/{username}", get(get_notes_by_username_route))
-        .route("/notes/{id}", get(get_notes_by_id_route))
+        .route("/notes/user/{username}", get(get_notes_by_username_route))
+        .route("/notes/id/{id}", get(get_notes_by_id_route))
         .route("/notes/new", post(create_note_route))
         .route("/notes/edit", put(edit_note_route))
         .route("/notes/delete/{id}", delete(delet_note_route))
