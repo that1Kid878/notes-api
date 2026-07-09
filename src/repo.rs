@@ -40,7 +40,7 @@ impl NoteRepo {
     // Create note
     pub async fn create_note(&self, input: &CreateNoteDto) -> Result<Note, sqlx::Error> {
         let note: Note =
-            query_as("INSERT INTO notes (username, title, body, last_edited) VALUES (?, ?, ?) RETURNING id, username, title, body, last_edited, created_at")
+            query_as("INSERT INTO notes (username, title, body, last_edited) VALUES (?, ?, ?, CURRENT_TIMESTAMP) RETURNING id, username, title, body, last_edited, created_at")
                 .bind(&input.username)
                 .bind(&input.title)
                 .bind(&input.body)

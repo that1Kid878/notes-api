@@ -1,12 +1,12 @@
 use axum::{
     Json, Router,
-    extract::{Query, State},
+    extract::{Path, State},
     routing::{delete, get, post, put},
 };
 use sqlx::sqlite::SqlitePoolOptions;
 
 use crate::{
-    dto::{CreateNoteDto, DeleteNoteDto, EditNoteDto, GetIdNotesDto, GetUsernameNotesDto},
+    dto::{CreateNoteDto, EditNoteDto},
     handler::NoteHandler,
     models::Note,
     repo::NoteRepo,
@@ -52,16 +52,16 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 async fn get_notes_by_username_route(
     State(state): State<AppState>,
-    Query(payload): Query<GetUsernameNotesDto>,
+    Path(username): Path<String>,
 ) -> Result<AppResponse<Vec<Note>>, AppError> {
-    state.handler.get_notes_by_username(&payload.username).await
+    state.handler.get_notes_by_username(&username).await
 }
 
 async fn get_notes_by_id_route(
     State(state): State<AppState>,
-    Query(payload): Query<GetIdNotesDto>,
+    Path(id): Path<i32>,
 ) -> Result<AppResponse<Note>, AppError> {
-    state.handler.get_note_by_id(payload.id).await
+    state.handler.get_note_by_id(id).await
 }
 
 async fn create_note_route(
@@ -80,7 +80,7 @@ async fn edit_note_route(
 
 async fn delet_note_route(
     State(state): State<AppState>,
-    Query(payload): Query<DeleteNoteDto>,
+    Path(id): Path<i32>,
 ) -> Result<AppResponse<()>, AppError> {
-    state.handler.delete_note(payload.id).await
+    state.handler.delete_note(id).await
 }
