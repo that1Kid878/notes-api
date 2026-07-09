@@ -38,15 +38,16 @@ impl NoteRepo {
         Ok(notes)
     }
     // Create note
-    pub async fn create_note(&self, input: &CreateNoteDto) -> Result<(), sqlx::Error> {
-        query("INSERT INTO notes (username, title, body, last_edited) VALUES (?, ?, ?)")
-            .bind(&input.username)
-            .bind(&input.title)
-            .bind(&input.body)
-            .execute(&self.pool)
-            .await?;
+    pub async fn create_note(&self, input: &CreateNoteDto) -> Result<Note, sqlx::Error> {
+        let note: Note =
+            query_as("INSERT INTO notes (username, title, body, last_edited) VALUES (?, ?, ?) RETURNING id, username, title, body, last_edited, created_at")
+                .bind(&input.username)
+                .bind(&input.title)
+                .bind(&input.body)
+                .fetch_one(&self.pool)
+                .await?;
 
-        Ok(())
+        Ok(note)
     }
     // Edit note
     pub async fn edit_note(&self, input: &EditNoteDto) -> Result<(), sqlx::Error> {

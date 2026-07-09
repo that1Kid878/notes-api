@@ -53,10 +53,13 @@ impl NoteHandler {
         }
     }
 
-    pub async fn create_note(&self, payload: &CreateNoteDto) -> Result<AppResponse<()>, AppError> {
+    pub async fn create_note(
+        &self,
+        payload: &CreateNoteDto,
+    ) -> Result<AppResponse<Note>, AppError> {
         let result = self.repo.create_note(payload).await;
         match result {
-            Ok(_) => Ok(AppResponse::Created(())),
+            Ok(note) => Ok(AppResponse::Created(note)),
             Err(e) => {
                 if e.type_id() == TypeId::of::<sqlx::Error>() {
                     Err(sqlx_error_handler(e).await)
