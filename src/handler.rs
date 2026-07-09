@@ -1,7 +1,4 @@
-use std::{
-    any::{Any, TypeId},
-    sync::Arc,
-};
+use std::any::{Any, TypeId};
 
 use crate::{
     dto::{CreateNoteDto, EditNoteDto},
@@ -13,11 +10,11 @@ use crate::{
 
 #[derive(Clone)]
 pub struct NoteHandler {
-    repo: Arc<NoteRepo>,
+    repo: NoteRepo,
 }
 
 impl NoteHandler {
-    pub fn new(repo: Arc<NoteRepo>) -> Self {
+    pub fn new(repo: NoteRepo) -> Self {
         Self { repo }
     }
 
