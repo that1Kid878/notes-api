@@ -20,7 +20,7 @@ pub async fn sqlx_error_handler(err: SqlError) -> AppError {
             },
         },
         _ => AppError::InternalServerError {
-            message: format!("Database error: {}", err),
+            message: format!("SQLx error: {}", err),
         },
     }
 }

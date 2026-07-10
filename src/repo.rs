@@ -54,7 +54,7 @@ impl NoteRepo {
         query(
             "UPDATE notes
             SET body = COALESCE(?, body),
-                title = COALESCE(?, title)
+                title = COALESCE(?, title),
                 last_edited = CURRENT_TIMESTAMP
             WHERE id = ?",
         )
