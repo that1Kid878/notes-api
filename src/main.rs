@@ -26,10 +26,24 @@ struct AppState {
 
 #[tokio::main(flavor = "current_thread")]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let database_url =
+        std::env::var("DATABASE_URL").unwrap_or_else(|_| "sqlite::memory:".to_string());
+
+    println!("Database url taken: {}", database_url);
+
     let pool = SqlitePoolOptions::new()
         .max_connections(5)
-        .connect("sqlite://local.db")
+        .connect(&database_url)
         .await?;
+
+    println!("Pool connected");
+
+    sqlx::migrate!()
+        .run(&pool)
+        .await
+        .expect("Failed to run migrations");
+
+    println!("Migration successful");
 
     let repo = NoteRepo::new(pool);
     let handler = NoteHandler::new(repo.clone());
@@ -44,7 +58,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .route("/notes/delete/{id}", delete(delet_note_route))
         .with_state(state);
 
-    let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await?;
+    let listener = tokio::net::TcpListener::bind("0.0.0.0:8080").await?;
     axum::serve(listener, app).await?;
 
     Ok(())
