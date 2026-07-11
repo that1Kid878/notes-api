@@ -24,7 +24,15 @@ impl NoteHandler {
     ) -> Result<AppResponse<Vec<Note>>, AppError> {
         let result = self.repo.get_notes(username).await;
         match result {
-            Ok(notes) => Ok(AppResponse::OK(notes)),
+            Ok(notes) => {
+                if notes.is_empty() {
+                    Err(AppError::NotFound {
+                        message: "Notes not found".to_string(),
+                    })
+                } else {
+                    Ok(AppResponse::OK(notes))
+                }
+            }
             Err(e) => {
                 if e.type_id() == TypeId::of::<sqlx::Error>() {
                     Err(sqlx_error_handler(e).await)
